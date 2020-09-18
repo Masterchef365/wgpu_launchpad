@@ -1,14 +1,18 @@
-mod scene;
-use scene::Scene;
-
+pub use winit::event::WindowEvent;
 use winit::{
-    event::{Event, WindowEvent},
+    event::Event,
     event_loop::{ControlFlow, EventLoop},
 };
 
 const SWAPCHAIN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
-pub fn main() {
+pub trait Scene {
+    fn new(device: &wgpu::Device) -> Self;
+    fn draw(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
+    fn event(&mut self, _event: &WindowEvent) {}
+}
+
+pub fn launch<S: 'static + Scene>() {
     // Initialize winit
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
@@ -56,20 +60,23 @@ pub fn main() {
     let mut resized = false;
 
     // Initialize scene and GUI controls
-    let scene = Scene::new(&mut device);
+    let mut scene = S::new(&mut device);
 
     // Run event loop
     event_loop.run(move |event, _, control_flow| {
         match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::Resized(_) => {
-                    resized = true;
+            Event::WindowEvent { event, .. } => {
+                scene.event(&event);
+                match event {
+                    WindowEvent::Resized(_) => {
+                        resized = true;
+                    }
+                    WindowEvent::CloseRequested => {
+                        *control_flow = ControlFlow::Exit;
+                    }
+                    _ => {}
                 }
-                WindowEvent::CloseRequested => {
-                    *control_flow = ControlFlow::Exit;
-                }
-                _ => {}
-            },
+            }
             Event::MainEventsCleared => {
                 if resized {
                     let size = window.inner_size();

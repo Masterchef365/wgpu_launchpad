@@ -1,16 +1,21 @@
-pub struct Scene {
+use wgpu_launchpad::{Scene, launch, WindowEvent};
+
+fn main() {
+    launch::<Triangle>();
+}
+
+pub struct Triangle {
     pipeline: wgpu::RenderPipeline,
 }
 
-impl Scene {
-    pub fn new(device: &wgpu::Device) -> Scene {
+impl Scene for Triangle {
+    fn new(device: &wgpu::Device) -> Triangle {
         let pipeline = build_pipeline(device);
-
-        Scene { pipeline }
+        Triangle { pipeline }
     }
 
-    pub fn draw(
-        &self, 
+    fn draw(
+        &mut self, 
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
     ) {
@@ -32,7 +37,6 @@ impl Scene {
 
 fn build_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
     let vs_module = device.create_shader_module(wgpu::include_spirv!("shaders/shader.vert.spv"));
-
     let fs_module = device.create_shader_module(wgpu::include_spirv!("shaders/shader.frag.spv"));
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
