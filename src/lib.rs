@@ -9,8 +9,11 @@ const SWAPCHAIN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrg
 
 /// Traits implemented by the rendered Scene 
 pub trait Scene {
+    /// Arguments passed to the type during launch
+    type Args;
+
     /// Create a new instance of the scene; setup code should use the device to create pipelines
-    fn new(device: &wgpu::Device) -> Self;
+    fn new(device: &wgpu::Device, args: Self::Args) -> Self;
 
     /// Draw the scene; called every frame
     fn draw(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
@@ -20,7 +23,7 @@ pub trait Scene {
 }
 
 /// Launch the scene. See `examples/triangle.rs`.
-pub fn launch<S: 'static + Scene>() {
+pub fn launch<S: 'static + Scene>(args: S::Args) {
     // Initialize winit
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
@@ -68,7 +71,7 @@ pub fn launch<S: 'static + Scene>() {
     let mut resized = false;
 
     // Initialize scene and GUI controls
-    let mut scene = S::new(&mut device);
+    let mut scene = S::new(&mut device, args);
 
     // Run event loop
     event_loop.run(move |event, _, control_flow| {
