@@ -61,17 +61,15 @@ pub fn main() {
     // Run event loop
     event_loop.run(move |event, _, control_flow| {
         match event {
-            Event::WindowEvent { event, .. } => {
-                match event {
-                    WindowEvent::Resized(_) => {
-                        resized = true;
-                    }
-                    WindowEvent::CloseRequested => {
-                        *control_flow = ControlFlow::Exit;
-                    }
-                    _ => {}
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::Resized(_) => {
+                    resized = true;
                 }
-            }
+                WindowEvent::CloseRequested => {
+                    *control_flow = ControlFlow::Exit;
+                }
+                _ => {}
+            },
             Event::MainEventsCleared => {
                 if resized {
                     let size = window.inner_size();
@@ -95,13 +93,8 @@ pub fn main() {
                 let mut encoder =
                     device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-                {
-                    // We clear the frame
-                    let mut render_pass = scene.clear(&frame.output.view, &mut encoder);
-
-                    // Draw the scene
-                    scene.draw(&mut render_pass);
-                }
+                // Draw the scene
+                scene.draw(&mut encoder, &frame.output.view);
 
                 // Then we submit the work
                 queue.submit(Some(encoder.finish()));

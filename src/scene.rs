@@ -9,12 +9,12 @@ impl Scene {
         Scene { pipeline }
     }
 
-    pub fn clear<'a>(
-        &self,
-        target: &'a wgpu::TextureView,
-        encoder: &'a mut wgpu::CommandEncoder,
-    ) -> wgpu::RenderPass<'a> {
-        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+    pub fn draw(
+        &self, 
+        encoder: &mut wgpu::CommandEncoder,
+        target: &wgpu::TextureView,
+    ) {
+        let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: target,
                 resolve_target: None,
@@ -24,12 +24,9 @@ impl Scene {
                 },
             }],
             depth_stencil_attachment: None,
-        })
-    }
-
-    pub fn draw<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
-        render_pass.set_pipeline(&self.pipeline);
-        render_pass.draw(0..3, 0..1);
+        });
+        rpass.set_pipeline(&self.pipeline);
+        rpass.draw(0..3, 0..1);
     }
 }
 
