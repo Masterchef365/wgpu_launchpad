@@ -1,3 +1,4 @@
+pub use wgpu;
 pub use winit::event::WindowEvent;
 use winit::{
     event::Event,
@@ -6,12 +7,19 @@ use winit::{
 
 const SWAPCHAIN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
+/// Traits implemented by the rendered Scene 
 pub trait Scene {
+    /// Create a new instance of the scene; setup code should use the device to create pipelines
     fn new(device: &wgpu::Device) -> Self;
+
+    /// Draw the scene; called every frame
     fn draw(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
+
+    /// (Optional) handle events from Winit
     fn event(&mut self, _event: &WindowEvent) {}
 }
 
+/// Launch the scene. See `examples/triangle.rs`.
 pub fn launch<S: 'static + Scene>() {
     // Initialize winit
     let event_loop = EventLoop::new();
@@ -78,6 +86,7 @@ pub fn launch<S: 'static + Scene>() {
                 }
             }
             Event::MainEventsCleared => {
+                // Rebuild the swapchain if necessary
                 if resized {
                     let size = window.inner_size();
 
@@ -95,6 +104,7 @@ pub fn launch<S: 'static + Scene>() {
                     resized = false;
                 }
 
+                // Get another frame
                 let frame = swap_chain.get_current_frame().expect("Next frame");
 
                 let mut encoder =
